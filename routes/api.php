@@ -14,6 +14,15 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+//user routes
+Route::post('sign-up', [App\Http\Controllers\UserController::class, 'register']);
+Route::post('sign-in', [App\Http\Controllers\UserController::class, 'login']);
+Route::post('logout/{id}', [App\Http\Controllers\UserController::class, 'logout']);
+Route::post('delete-account/{id}', [App\Http\Controllers\UserController::class, 'deleteAccount']);
+
+//task routes
+Route::post('create-task', [App\Http\Controllers\TaskController::class, 'createTask']);
+Route::get('get-tasks', [App\Http\Controllers\TaskController::class, 'getTasks']);
+Route::get('get-task/{id}', [App\Http\Controllers\TaskController::class, 'getTask']);
+Route::put('update-task/{id}', [App\Http\Controllers\TaskController::class, 'updateTask']);
+Route::delete('delete-task/{id}', [App\Http\Controllers\TaskController::class, 'deleteTask']);
