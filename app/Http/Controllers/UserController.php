@@ -5,16 +5,31 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
     public function register(Request $request)
     {
 
-        $request->validate([
-            'email' => 'required|email|unique:users,email|max:100',
-            'password' => 'required|min:6|max:100'
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required|min:6',
         ]);
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            $message = '';
+            if ($errors->has('email')) {
+                $message .= 'The email field is required. ';
+            }
+            if ($errors->has('password')) {
+                $message .= 'The password field is required.';
+            }
+            return response()->json([
+                'status' => 'error',
+                'message' => $message,
+            ]);
+        }
         $user = User::where('email', $request->email)->first();
         if ($user) {
             if ($user->deleted_at) {
@@ -52,10 +67,25 @@ class UserController extends Controller
 
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email|max:100',
-            'password' => 'required|min:6|max:100'
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required|min:6',
         ]);
+        if ($validator->fails()) {
+            $errors = $validator->errors();
+            $message = '';
+            if ($errors->has('email')) {
+                $message .= 'The email field is required. ';
+            }
+            if ($errors->has('password')) {
+
+                $message .= 'The password field is required';
+            }
+            return response()->json([
+                'status' => 'error',
+                'message' => $message,
+            ]);
+        }
         $user = User::where('email', $request->email)->first();
         if ($user) {
             if ($user->deleted_at) {
@@ -97,24 +127,16 @@ class UserController extends Controller
 
     public function deleteAccount(Request $request, $id)
     {
-        $request->validate([
-            'password' => 'required|min:6|max:100'
-        ]);
+
         $user = User::find($id);
         if ($user) {
-            if (Hash::check($request->password, $user->password)) {
-                $user->deleted_at = now();
-                $user->tokens()->delete();
-                $user->save();
-                return response([
-                    'message' => 'Account deleted',
-                    'user' => $user
-                ]);
-            } else {
-                return response([
-                    'message' => 'Wrong password'
-                ]);
-            }
+            $user->deleted_at = now();
+            $user->tokens()->delete();
+            $user->save();
+            return response([
+                'message' => 'Account deleted',
+                'user' => $user
+            ]);
         } else {
             return response([
                 'message' => 'User does not exist'

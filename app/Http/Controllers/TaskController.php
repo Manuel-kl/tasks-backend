@@ -50,7 +50,7 @@ class TaskController extends Controller
             'user_id' => 'required|integer|exists:users,id'
         ]);
         $user = $request->user_id;
-        $tasks = Task::where('user_id', $user)->get();
+        $tasks = Task::where('user_id', $user)->where('deleted_at', null)->orderBy('updated_at', 'desc')->get();
         if ($tasks) {
             return response([
                 'message' => 'Tasks retrieved successfully',
@@ -125,6 +125,24 @@ class TaskController extends Controller
             $task->update();
             return response([
                 'message' => 'Task deleted successfully'
+            ]);
+        } else {
+            return response([
+                'message' => 'Task not found'
+            ]);
+        }
+    }
+    public function isDone(Request $request, $id)
+    {
+        $request->validate([
+            'user_id' => 'required|integer|exists:users,id'
+        ]);
+        $task = Task::find($id);
+        if ($task && $task->user_id == $request->user_id) {
+            $task->is_completed = true;
+            $task->update();
+            return response([
+                'message' => 'Task marked as done'
             ]);
         } else {
             return response([
